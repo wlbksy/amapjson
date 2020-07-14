@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
+    <style>
+        html,
+        body,
+        #container {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+    <title>GeoJSON</title>
+    <script src="https://webapi.amap.com/maps?v=2.0&key=YOUR_MAP_KEY"></script>
+    <script src="https://a.amap.com/jsapi_demos/static/demo-center/js/demoutils.js"></script>
+</head>
+<body>
+<div id="container"></div>
+<script type="text/javascript">
+    var map = new AMap.Map('container');
+
+    AMap.plugin([
+            'AMap.ToolBar',
+            'AMap.Scale',
+            'AMap.RangingTool',
+            'AMap.GeoJSON'
+        ], function () {
+            map.addControl(new AMap.ToolBar());
+            map.addControl(new AMap.Scale());
+            var ruler = new AMap.RangingTool(map);
+            ruler.turnOn();
+        }
+    );
+
+    ajax('static/data.json', function (err, data) {
+        if (err) {
+            console.log(err);
+            return;
+        }
+
+        var geojson_obj = new AMap.GeoJSON({
+            geoJSON: data,
+            getMarker: function (point_data, lnglats) {
+                var markers = new AMap.CircleMarker({
+                    center: lnglats,
+                    radius: point_data.properties['radius'],
+                    zIndex: point_data.properties['zIndex'],
+                    bubble: point_data.properties['bubble'],
+                    cursor: point_data.properties['cursor'],
+                    strokeColor: point_data.properties['strokeColor'],
+                    strokeOpacity: point_data.properties['strokeOpacity'],
+                    strokeWeight: point_data.properties['strokeWeight'],
+                    fillColor: point_data.properties['fillColor'],
+                    fillOpacity: point_data.properties['fillOpacity'],
+                    draggable: point_data.properties['draggable'],
+                    extData: point_data.properties['extData']
+                });
+                return markers;
+            },
+            getPolyline: function (line_data, lnglats) {
+                return new AMap.Polyline({
+                    path: lnglats,
+                    zIndex: line_data.properties['zIndex'],
+                    bubble: line_data.properties['bubble'],
+                    cursor: line_data.properties['cursor'],
+                    strokeColor: line_data.properties['strokeColor'],
+                    strokeOpacity: line_data.properties['strokeOpacity'],
+                    strokeWeight: line_data.properties['strokeWeight'],
+                    borderWeight: line_data.properties['borderWeight'],
+                    isOutline: line_data.properties['isOutline'],
+                    outlineColor: line_data.properties['outlineColor'],
+                    draggable: line_data.properties['draggable'],
+                    extData: line_data.properties['extData'],
+                    strokeStyle: line_data.properties['strokeStyle'],
+                    strokeDasharray: line_data.properties['strokeDasharray'],
+                    lineJoin: line_data.properties['lineJoin'],
+                    lineCap: line_data.properties['lineCap'],
+                    geodesic: line_data.properties['geodesic'],
+                    showDir: line_data.properties['showDir'],
+                });
+            },
+            getPolygon: function (polygon_data, lnglats) {
+                return new AMap.Polygon({
+                    path: lnglats,
+                    zIndex: polygon_data.properties['zIndex'],
+                    bubble: polygon_data.properties['bubble'],
+                    cursor: polygon_data.properties['cursor'],
+                    strokeColor: polygon_data.properties['strokeColor'],
+                    strokeOpacity: polygon_data.properties['strokeOpacity'],
+                    strokeWeight: polygon_data.properties['strokeWeight'],
+                    fillColor: polygon_data.properties['fillColor'],
+                    fillOpacity: polygon_data.properties['fillOpacity'],
+                    draggable: polygon_data.properties['draggable'],
+                    extData: polygon_data.properties['extData'],
+                    strokeStyle: polygon_data.properties['strokeStyle'],
+                    strokeDasharray: polygon_data.properties['strokeDasharray'],
+                });
+            }
+        });
+
+        var infoWindow = new AMap.InfoWindow();
+
+        geojson_obj.on('click', function (e) {
+            console.log(e);
+            infoWindow.close();
+            var info = e.target.getExtData();
+            infoWindow.setContent(info);
+            infoWindow.open(map, e.lnglat);
+        });
+
+        map.add(geojson_obj);
+
+        map.setFitView();
+    })
+</script>
+</body>
+</html>
